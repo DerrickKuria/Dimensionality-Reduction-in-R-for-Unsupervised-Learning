@@ -1,0 +1,659 @@
+---
+title: "Unsupervised_Learning"
+author: "datagulf"
+date: "23/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Define the Question
+
+This is will help us understand the task at hand, the dataset to be used and the metrics of Success.
+
+### a. Specifying the question.
+You are a Data analyst at Carrefour Kenya and are currently undertaking a project that will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax). Your project has been divided into four parts where you'll explore a recent marketing dataset by performing various unsupervised learning techniques and later providing recommendations based on your insights.
+ 
+### b. Define the Metrics of Success.
+Our metrics of Success is to be able to do a conclusive Dimensionality reduction through the various methods.
+
+### c. Understand context
+The context is using data to do Dimensionality reduction through PCA and other ways to get meaningful insights and conclusions from advertising data.
+
+### d. Record the experiment design 
+This involves:
+a. Cleaning
+   i). Removing anomalies in the data
+  ii). Finding and dealing with missing data
+ iii). Dealing with duplicated rows in the data
+ 
+b. Exploratory Data Analysis
+   i). Univariate analysis
+  ii). Bivariate analysis
+ iii). Multivariate analysis 
+ 
+c. Dimensionality Reduction
+   i). PCA  
+  
+ 
+ 
+### e. Data relevance
+To establish if the data is relevant to the question and the objectives of the experiment.
+
+## 2. Read Data
+We start by importing the Data
+```{r}
+library(readr)
+mall<- read_csv("Supermarket_Dataset_1 - Sales Data.csv")
+
+```
+Inspect the column names
+```{r}
+colnames(mall)
+```
+inspect the dimension of the data
+```{r}
+dim(mall)
+#We have 1000 rows and 16 columns
+```
+Inspect the structure of the data
+```{r}
+str(mall)
+
+```
+Check the first 6 rows in the data
+```{r}
+
+head(mall)
+```
+
+Inspect the last 6 rows of the data
+```{r}
+tail(mall)
+
+```
+Get the Summaries of the data
+
+```{r}
+summary(mall)
+
+```
+
+Assign  all the variables to a single name for simplicity
+```{r}
+invoice <- mall$`Invoice ID`
+branch <- mall$Branch
+customer <- mall$`Customer type`
+gender <- mall$Gender
+prod_line <- mall$`Product line`
+unit <- mall$`Unit price`
+quantity <-mall$Quantity
+tax <- mall$Tax
+date <- mall$Date
+time <- mall$Time
+pay <- mall$Payment
+cogs <- mall$cogs
+gmp <- mall$`gross margin percentage`
+gross_income <- mall$`gross income`
+rate <- mall$Rating
+total <- mall$Total
+
+```
+
+Check summaries for Each
+1. Invoice
+```{r}
+summary(invoice)
+```
+2.  Branch
+```{r}
+summary(branch)
+
+```
+3.customer
+```{r}
+summary(customer)
+
+```
+4. Gender
+```{r}
+summary(gender)
+```
+5. Product line
+```{r}
+summary(prod_line)
+```
+6. Unit
+```{r}
+summary(unit)
+
+# The minimum value for unit is 10.08 , 
+# The maximum value for unit is 99.96
+#The mean and the median are very close showing this column has a normal distribution
+```
+7. Tax
+```{r}
+summary(tax)
+# The minimum value for unit is 0.5085 , 
+# The maximum value for unit is 49.65
+#The mean and the median are close showing this column has a normal distribution
+```
+8. Time
+```{r}
+summary(time)
+
+```
+9. Pay
+```{r}
+summary(pay)
+
+```
+10. cogs
+```{r}
+summary(cogs)
+# The minimum value for unit is 10.17 , 
+# The maximum value for unit is 993.00
+#The mean and the median are somewhat not close showing this column hence this is not a normal distribution and could be skewed.
+```
+11. gmp
+```{r}
+summary(gmp)
+# The minimum value for unit is 4.762 , 
+# The maximum value for unit is 4.762
+#The mean and the median are close showing this column has a normal distribution
+```
+12. gross income
+```{r}
+summary(gross_income)
+# The minimum value for unit is 0.5085 , 
+# The maximum value for unit is 49.6500
+#The mean and the median are close showing this column has a normal distribution
+```
+13. Rate
+```{r}
+summary(rate)
+
+# The minimum value for unit is 4.000 , 
+# The maximum value for unit is 10.000
+#The mean and the median are close showing this column has a normal distribution
+```
+14. Total
+```{r}
+summary(total)
+# The minimum value for unit is 10.68 , 
+# The maximum value for unit is 1042.65
+#The mean and the median are close showing this column has a normal distribution
+```
+## 4. Clean the data
+ We need to ensure that our data does not any inconsistencies. It may look clean but we will  perform procedures to ensure it clean.The procedures are:
+ 1. Find missing data
+ 2. Locate and get rid of outliers
+ 3. Find duplicated rows and deal with them
+
+
+### 1. Find Missing data
+ Missing data is any data in a dataframe  that contains either , Na , NaN or a blank space. 
+```{r}
+length(which(is.na(invoice)))
+```
+
+
+```{r}
+length(which(is.na(branch)))
+
+```
+
+
+```{r}
+length(which(is.na(customer)))
+
+```
+
+
+```{r}
+length(which(is.na(gender)))
+
+```
+
+
+```{r}
+length(which(is.na(unit)))
+
+```
+
+
+```{r}
+length(which(is.na(tax)))
+
+```
+
+
+```{r}
+length(which(is.na(date)))
+```
+
+
+```{r}
+
+length(which(is.na(time)))
+```
+
+
+```{r}
+
+length(which(is.na(pay)))
+```
+
+
+```{r}
+length(which(is.na(cogs)))
+
+```
+
+
+```{r}
+length(which(is.na(gmp)))
+
+```
+
+
+```{r}
+length(which(is.na(gross_income)))
+
+```
+
+
+```{r}
+length(which(is.na(rate)))
+
+```
+
+
+```{r}
+length(which(is.na(total)))
+
+```
+From this Data , we can observe that there was no missing data from the dataset.
+
+### 2. Outliers
+ We are going to use Boxplots. Boxplots are really helpful.From a  boxplot we get outliers using the normal distribution. For a normal distribution the Mean and median should be very near to each other. Having very far off Mean and median values means that that variable or data is skewed.THis image shows a labeled Boxplot.
+
+
+```{r}
+boxplot(total)
+
+```
+
+
+```{r}
+boxplot(rate)
+
+```
+
+
+```{r}
+boxplot(gross_income)
+
+```
+
+
+```{r}
+boxplot(gmp)
+```
+
+
+```{r}
+boxplot(cogs)
+```
+
+```{r}
+boxplot(time)
+
+```
+
+
+```{r}
+boxplot(tax)
+
+```
+### 3. Dealing with Duplicates
+ For data to qualify to be duplicated , there has to be identical row Items more than once.
+
+```{r}
+duplicated_all  = mall[duplicated(mall),]
+duplicated_all
+#From the data , none of the columns shows duplication
+```
+## 4. EXploratory Data Analysis
+
+Exploratory data analysis is an approach to analyzing data sets to summarize their main characteristics, often with visual methods. A statistical model can be used or not, but primarily EDA is for seeing what the data can tell us beyond the formal modeling or hypothesis testing task
+
+###  1.Measures of Central Tendency. 
+ a. Mean
+#### We have extensively checked at Mean in the Summaries
+```{r}
+suppressWarnings(
+        suppressMessages(if
+                         (!require(pastecs, quietly=TRUE))
+install.packages("pastecs")))
+
+library('pastecs')
+stat.desc(mall)
+``` 
+
+
+```{r}
+
+
+
+```
+ b.median.
+#### We have extensively checked at Median values in the Summaries
+
+ c.Mode
+#### R - does not have an inbuilt R code for mode. Hence we will create our own function.
+
+```{r}
+getmode <- function(v){
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v ,uniqv)))]
+}
+```
+
+1. Mode of total
+```{r}
+getmode(total)
+
+```
+2. Mode of Rate
+```{r}
+getmode(rate)
+
+```
+3. Mode of  Gross Income
+```{r}
+getmode(gross_income)
+
+```
+
+Mode of GMP
+```{r}
+getmode(gmp)
+
+```
+Mode of Cogs
+
+```{r}
+getmode(cogs)
+
+```
+Mode of pay
+
+```{r}
+getmode(pay)
+
+```
+ Mode for time
+
+```{r}
+getmode(time)
+```
+
+Mode of  tax
+```{r}
+getmode(tax)
+
+```
+### .Dispresion of data
+
+```{r}
+#Spread of Rate
+plot(density(rate), main = 'Rate density spread')
+
+```
+
+
+
+```{r}
+#Spread of Gross income
+plot(density(gross_income), main = 'Gross income density spread')
+
+```
+
+
+
+```{r}
+#Spread of Gmp
+plot(density(gmp), main = 'GMP density spread')
+
+
+```
+
+
+
+```{r}
+#Spread of Gmp
+plot(density(cogs), main = 'Cogs density spread')
+
+```
+
+
+```{r}
+#Spread of tax
+plot(density(tax), main = 'Tax density spread')
+
+```
+###Bivariate and multivariate analysis
+This will handle the relationships of data among  categorical variables. We will use density plots, scatter plots. 
+#### 1. Categorical and continuous variables
+#### Relationship between clicked and area Income
+
+
+```{r}
+by(gross_income, rate, summary)
+```
+
+
+```{r}
+by(gross_income, gmp, summary)
+
+```
+
+
+
+```{r}
+#by(gross_income, total*,summary)
+
+```
+
+
+```{r}
+boxplot(total~rate, col = c("grey", "red") , main ="total against Rate")
+
+```
+
+
+```{r}
+boxplot(cogs~gmp, col = c("blue", "orange") , main ="Gmp against Cogs")
+```
+#Dimensionality Reduction.
+There are problems we face when dealing with high dimensional datasets , some times called the curse of Dimensionality.
+
+## PCA - Principal Component Analysis
+ lets check for Numerical variables.
+
+```{r}
+str(mall)
+
+```
+Now that we have the the numerical variables now one can define those variables. Avoid (categorical variables)
+
+```{r}
+#Check for SD, if any has Zero , remove it from the List of Numeric variables.
+sd(unit)
+sd(quantity)
+sd(cogs)
+sd(gmp)
+sd(gross_income)
+sd(rate)
+sd(total)
+
+```
+We then pass df to the prcomp(). We also set two arguments, center and scale, 
+to be TRUE then preview our object with summary
+```{r}
+unit <- as.numeric(unit)
+quantity <- as.numeric(quantity)
+cogs <- as.numeric(cogs)
+gmp <- as.numeric(gmp)
+gross_income <- as.numeric(gross_income)
+rate <- as.numeric(rate)
+total <- as.numeric(total)
+```
+
+
+```{r}
+df <- mall[,c(6,7,12,14,15)]
+head(df)
+```
+
+
+```{r}
+mall.pca <- prcomp(df, 
+                   center = TRUE, 
+                   scale. = TRUE)
+
+
+```
+
+
+```{r}
+
+print(mall.pca)
+
+```
+
+Have a look at the data types of Mall.pca
+```{r}
+summary(mall.pca)
+
+```
+ PC1 explains 58% of the total variance, which means that nearly two-thirds 
+ of the information in the dataset (6s) can be encapsulated 
+by just that one Principal Component. PC2 and PC3 explains 20% of the variance. etc
+
+
+
+We will now plot our pca. This will provide us with some very useful insights i.e. 
+
+
+
+
+# Installing our ggbiplot visualisation package
+
+```{r}
+
+library(devtools)
+library(usethis)
+```
+
+
+```{r}
+install_github("vqv/ggbiplot")
+
+```
+```{r}
+library(ggbiplot)
+plot = ggbiplot(mall.pca , obs.scale = 1 , var.scale = 1 ,ellipse = TRUE, circle = TRUE)
+plot1 = plot + scale_color_discrete(name = '') + theme(legend.direction = 'horizontal')
+plot1
+```
+#Feature Selection
+
+Feature selection is also known as Variable selection or attribute selection. 
+
+#### Feature Selectino is the process of selecting a subset relevant to  use in model construction.
+The key point is to choose relevant features of variables for modeling and to avoid features that prove redundant considering their correlation to simplifying  model construction.
+
+
+The most common used techniques fo feature selection are:
+ 1. Expert Knowledge based
+ 2. Feature ranking 
+ 3. Subset selection techniques
+ 4. Embedded methods
+ 5. Wrapper methods
+ 6. Filter methods
+ 
+ 
+```{r}
+# Loading or installing package
+suppressWarnings(
+        suppressMessages(if
+                         (!require(FSelector, quietly=TRUE))
+                install.packages("FSelector")))
+
+```
+
+
+```{r}
+library(FSelector)
+```
+
+```{r}
+suppressWarnings(
+        suppressMessages(if
+                         (!require(cluster, quietly=TRUE))
+                install.packages("cluster")))
+library("cluster")
+
+```
+
+```{r}
+suppressWarnings(
+        suppressMessages(if
+                         (!require(wskm, quietly=TRUE))
+                install.packages("wskm")))
+library(wskm)
+```
+
+
+
+```{r}
+set.seed(2)
+model <- ewkm(df,3, lambda=2, maxiter=1000)
+
+```
+
+
+```{r}
+# Cluster Plot against 1st 2 principal components
+# ---
+#
+clusplot(df, model$cluster, color=TRUE, shade=TRUE,
+         labels=2, lines=1,main='Cluster Analysis for Carefour')
+
+```
+
+
+```{r}
+round(model$weights*100,2)
+
+```
+
+
+```{r}
+
+
+``` 
+
+
+
+
+
+
+
+
+ 
+ 
