@@ -1,0 +1,180 @@
+---
+title: "Association Rules"
+author: "datagulf"
+date: "26/07/2020"
+output: html_document
+---
+
+```{r}
+library(data.table)
+library(readr)
+library(tidyverse)
+Supermarket <- read.transactions("~/Supermarket_Sales_Dataset II.csv")
+
+```
+
+
+```{r}
+head(supermarket)
+```
+
+Check column names
+```{r}
+colnames(supermarket)
+```
+Check the dimension
+```{r}
+dim(supermarket)
+```
+
+Check the  class
+```{r}
+class(supermarket)
+```
+
+
+```{r}
+tail(supermarket)
+```
+
+```{r}
+str(supermarket)
+```
+
+
+```{r}
+summary(supermarket)
+
+```
+load arules
+```{r}
+suppressWarnings(
+    suppressMessages(if
+                     (!require(arules, quietly = TRUE))
+            install.packages("arules")))
+```
+
+Exploring the frequency of some articles in the data.
+View transactions ranging from 10 to 12 and performing 
+some operation in percentage terms of the total transactions 
+
+```{r}
+library(arules)
+```
+
+```{r}
+itemFrequency(supermarket[, 10:12],type = "absolute")
+
+```
+
+
+
+```{r}
+round(itemFrequency(supermarket[, 10:12],type = "relative")*100,2)
+```
+
+plot the frequency of items
+```{r}
+
+itemFrequencyPlot(supermarket, topN = 10,col="darkgreen")
+itemFrequencyPlot(supermarket, support = 0.1,col="darkred")
+```
+
+Building a model based on association rules using the apriori function
+```{r}
+rules <- apriori (supermarket, parameter = list(supp = 0.001, conf = 0.8))
+rules
+```
+Building a apriori model with Min Support as 0.002 and confidence as 0.8
+
+
+```{r}
+
+
+rules2 <- apriori (Df, parameter = list(supp = 0.002, conf = 0.8)) 
+rules2
+
+
+```
+
+
+Building apriori model with Min Support as 0.002 and confidence as 0.6
+
+
+```{r}
+rules3 <- apriori (Df, parameter = list(supp = 0.001, conf = 0.6)) 
+rules3
+
+
+```
+
+
+```{r}
+summary(rules)
+
+```
+
+ Observing rules built in our model i.e. first 6 model rules
+
+
+
+```{r}
+rules(head)
+```
+
+# Order these rules by a criteria such as the level of confidence
+# then looking at the first five rules.
+
+
+
+```{r}
+rules<-sort(rules, by="confidence", decreasing=TRUE)
+inspect(rules[1:5])
+
+```
+# 1. Determine items that customers who previously bought eggs might buy 
+
+
+
+```{r}
+eggs <- subset(rules, subset = lhs %pin% "eggs")
+
+
+```
+# Then order by confidence
+
+
+```{r}
+eggs <-sort(eggs, by="confidence", decreasing=TRUE)
+head(eggs)
+
+
+```
+# 2. Determine items that customers who previously bought turkey might buy 
+
+
+```{r}
+turkey <- subset(rules, subset = lhs %pin% "turkey")
+
+```
+# Then order by confidence
+```{r}
+
+turkey <-sort(turkey, by="confidence", decreasing=TRUE)
+head(turkey)
+
+```
+# 3. Determine which items customers bought before purchasing chocolate
+
+```{r}
+
+chocolate <- subset(rules, subset = rhs %pin% "chocolate")
+
+```
+
+# Then order by confidence
+```{r}
+chocolate <-sort(chocolate, by="confidence", decreasing=TRUE)
+head(chocolate)
+```
+
