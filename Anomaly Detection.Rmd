@@ -1,0 +1,117 @@
+---
+title: "Anomaly_detection"
+author: "datagulf"
+date: "25/07/2020"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Define the Question
+
+This is will help us understand the task at hand, the dataset to be used and the metrics of Success.
+
+### a. Specifying the question.
+ Your project has been divided into four parts where you'll explore a recent marketing dataset by performing various unsupervised learning techniques and later providing recommendations based on your insights. 
+ 
+### b. Define the Metrics of Success.
+Our metrics of Success is to be able to do a conclusive Dimensionality reduction(Anomaly Detection) through the various methods.
+
+### c. Understand context
+The context is using data to do Dimensionality reduction through Anomaly Detection and other ways to get meaningful insights and conclusions from advertising data.
+
+### d. Record the experiment design 
+This involves:
+a. Cleaning
+   i). Removing anomalies in the data
+  ii). Finding and dealing with missing data
+ iii). Dealing with duplicated rows in the data
+ 
+b. Exploratory Data Analysis
+   i). Univariate analysis
+  ii). Bivariate analysis
+ iii). Multivariate analysis 
+ 
+c. Dimensionality Reduction
+   i).  Association Rules
+  
+### e. Data relevance
+To establish if the data is relevant to the question and the objectives of the experiment.
+
+## 2. Read Data
+We start by importing the Data
+
+```{r}
+library(readr)
+fore <- read_csv("Supermarket_Sales_Forecasting - Sales.csv")
+
+```
+
+
+```{r}
+head(fore)
+```
+```{r}
+tail(fore)
+```
+
+```{r}
+colnames(fore)
+```
+
+```{r}
+str(fore)
+```
+
+```{r}
+class(fore)
+```
+convertion of Dare to a date type 
+
+```{r}
+fore$Date <- as.Date(fore$Date,  tryFormats = c("%m-%d-%Y", "%m/%d/%Y"))
+#Check the structure
+str(fore$Date)
+```
+
+```{r}
+# Installing anomalize package
+
+install.packages("anomalize")
+```
+```{r}
+# Load tidyverse and anomalize
+
+library(tidyverse)
+library(anomalize)
+```
+```{r}
+devtools::install_github("business-science/anomalize")
+```
+````{r}
+fore <- fore %>% rownames_to_column() %>% as_tibble() %>% 
+  mutate(date = as.Date(Date)) %>% select(-one_of('Date'))
+```
+
+```{r}
+super <- fore %>%
+  mutate(year = year(date), month = month(date), day = day(date)) %>%
+  group_by(year, month, day)%>%
+  summarise(sums = mean(Sales))
+```
+
+
+
+```{r}
+fore %>%
+  time_decompose(Sales , method = "stl", frequency = "auto", trend = "auto")%>%
+  anomalize(remainder, method = "gesd", alpha = 0.05 , max_anoms = 0.2)%>%
+            plot_anomaly_decomposition()
+
+```
+
+
+
+
